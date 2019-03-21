@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration debug="false" scan="false">
+	<!--<springProperty scop="context" name="log.root" source="log.root" defaultValue="/data/home/admin/sto-application/log"/>-->
+	<property name="log.path" value="/data/home/admin/sto-application/log" />
+
+	<property name="CONSOLE_LOG_PATTERN"
+			  value="${CONSOLE_LOG_PATTERN:-%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr(${PID:- }){magenta} [%X{traceId}] %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}}" />
+
+	<conversionRule conversionWord="clr" converterClass="org.springframework.boot.logging.logback.ColorConverter" />
+	<conversionRule conversionWord="wex" converterClass="org.springframework.boot.logging.logback.WhitespaceThrowableProxyConverter" />
+	<conversionRule conversionWord="wEx"
+					converterClass="org.springframework.boot.logging.logback.ExtendedWhitespaceThrowableProxyConverter" />
+
+	<appender name="STDOUT-APPENDER" class="ch.qos.logback.core.ConsoleAppender">
+		<encoder>
+			<pattern>${CONSOLE_LOG_PATTERN}</pattern>
+			<charset>UTF-8</charset>
+		</encoder>
+	</appender>
+
+	<appender name="DEFAULT-APPENDER" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<file>${log.path}/default.log</file>
+		<rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+			<fileNamePattern>${log.path}/default.log.%d{yyyy-MM-dd}.%i.gz</fileNamePattern>
+			<maxFileSize>100MB</maxFileSize>
+			<maxHistory>7</maxHistory>
+		</rollingPolicy>
+		<encoder>
+			<pattern>%date [%thread] %-5level [%logger{50}] [%X{traceId}] %file:%line - %msg%n</pattern>
+			<charset>UTF-8</charset>
+		</encoder>
+	</appender>
+
+	<appender name="CHECK-RUNNING-APPENDER" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<file>${log.path}/sto-application-checkRunning.log</file>
+		<rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+			<fileNamePattern>${log.path}/sto-application-checkRunning.log.%d{yyyy-MM-dd}.%i.gz</fileNamePattern>
+			<maxFileSize>100MB</maxFileSize>
+			<maxHistory>7</maxHistory>
+		</rollingPolicy>
+		<encoder>
+			<pattern>%date [%thread] %-5level [%logger{50}] [%X{traceId}] %file:%line - %msg%n</pattern>
+			<charset>UTF-8</charset>
+		</encoder>
+	</appender>
+
+	<appender name="MONITOR-APPENDER" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<file>${log.path}/monitor.log</file>
+		<rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+			<fileNamePattern>${log.path}/monitor.log.%d{yyyy-MM-dd}.%i.gz</fileNamePattern>
+			<maxFileSize>100MB</maxFileSize>
+			<maxHistory>7</maxHistory>
+		</rollingPolicy>
+		<encoder>
+			<pattern>%date [%thread] %-5level [%logger{50}] [%X{traceId}] %file:%line - %msg%n</pattern>
+			<charset>UTF-8</charset>
+		</encoder>
+	</appender>
+
+	<logger name="quickfix" level="DEBUG" additivity="false">
+		<appender-ref ref="STDOUT-APPENDER" />
+		<appender-ref ref="DEFAULT-APPENDER" />
+	</logger>
+	<root level="INFO">
+		<appender-ref ref="STDOUT-APPENDER" />
+	</root>
+</configuration>
