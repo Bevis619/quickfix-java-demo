@@ -51,16 +51,6 @@ public class ClientController {
         SessionID sessionID = fixClient.sessionIds().get(0);
         Session session = Session.lookupSession(sessionID);
         session.logon();
-
-//        Logon message = new Logon();
-//        message.setField(new EncryptMethod(EncryptMethod.NONE_OTHER));
-//        message.setField(new HeartBtInt(30));
-//        message.setField(new Username("yanghuadong"));
-//        message.setField(new Password("abcd1234"));
-//        message.setField(new SendingTime(LocalDateTime.now()));
-//        message.setField(new RawData("1234"));
-//        message.setField(new RawDataLength(4));
-//        Session.sendToTarget(message, sessionID);
         return true;
     }
 
@@ -92,10 +82,7 @@ public class ClientController {
         newOrderSingle.set(new OrderQty(0));
         newOrderSingle.set(new CashOrderQty(0));
         newOrderSingle.set(new Price(0));
-        newOrderSingle.set(new Symbol("BTC"));
-        newOrderSingle.set(new HandlInst('1'));
-        newOrderSingle.set(new Currency("CNY"));
-        newOrderSingle.set(new TimeInForce(TimeInForce.DAY));
+        newOrderSingle.set(new Symbol("BTC/USD"));
         boolean result = Session.sendToTarget(newOrderSingle, sessionID);
         return result;
     }
