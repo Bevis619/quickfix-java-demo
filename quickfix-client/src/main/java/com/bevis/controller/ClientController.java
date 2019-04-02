@@ -15,6 +15,7 @@ import quickfix.SessionID;
 import quickfix.SessionNotFound;
 import quickfix.field.*;
 import quickfix.fix44.ListStatusRequest;
+import quickfix.fix44.MarketDataRequest;
 import quickfix.fix44.OrderCancelRequest;
 import quickfix.fix44.OrderStatusRequest;
 
@@ -111,12 +112,10 @@ public class ClientController {
         OrderCancelRequest request = new OrderCancelRequest();
         request.set(new ClOrdID(UUID.randomUUID().toString()));
         request.set(new OrderID("123"));
-        request.set(new OrderQty(2D));
         request.set(new OrigClOrdID("XXX"));
         request.set(new Side(Side.BUY));
         request.set(new Symbol("BTC"));
         request.set(new TransactTime(LocalDateTime.now()));
-        request.set(new Text("Cancel Order!"));
         boolean result = Session.sendToTarget(request, sessionID);
         return result;
     }
@@ -165,6 +164,40 @@ public class ClientController {
         MyMessage message = new MyMessage();
         message.set(new MyStringField("Hello Fix"));
         message.set(new MyPriceField(2.2));
+        SessionID sessionID = fixClient.sessionIds().get(0);
+        boolean result = Session.sendToTarget(message, sessionID);
+        return result;
+    }
+
+    /**
+     * Send market date message boolean.
+     *
+     * @return the boolean
+     * @throws SessionNotFound the session not found
+     */
+    @GetMapping("/bid")
+    public Boolean sendMarketDateMessage() throws SessionNotFound {
+        MarketDataRequest message = new MarketDataRequest();
+        message.set(new MDReqID("RQ001"));
+        message.set(new SubscriptionRequestType(SubscriptionRequestType.SNAPSHOT));
+        message.set(new MarketDepth(0));
+
+        MarketDataRequest.NoMDEntryTypes noMDEntryTypes = new MarketDataRequest.NoMDEntryTypes();
+        noMDEntryTypes.set(new MDEntryType(MDEntryType.TRADE));
+        message.addGroup(noMDEntryTypes);
+
+//        MarketDataRequest.NoMDEntryTypes noMDEntryTypes1 = new MarketDataRequest.NoMDEntryTypes();
+//        noMDEntryTypes1.set(new MDEntryType(MDEntryType.OFFER));
+//        message.addGroup(noMDEntryTypes1);
+//
+//        MarketDataRequest.NoRelatedSym noRelatedSym = new MarketDataRequest.NoRelatedSym();
+//        noRelatedSym.set(new Symbol("CEN/BTC"));
+//        message.addGroup(noRelatedSym);
+
+        MarketDataRequest.NoRelatedSym noRelatedSym1 = new MarketDataRequest.NoRelatedSym();
+        noRelatedSym1.set(new Symbol("XRP/BTC"));
+        message.addGroup(noRelatedSym1);
+
         SessionID sessionID = fixClient.sessionIds().get(0);
         boolean result = Session.sendToTarget(message, sessionID);
         return result;

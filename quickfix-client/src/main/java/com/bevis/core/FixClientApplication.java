@@ -11,6 +11,7 @@ import quickfix.MessageCracker;
 import quickfix.field.*;
 import quickfix.fix44.*;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.SortedSet;
@@ -53,6 +54,11 @@ public class FixClientApplication extends MessageCracker implements Application 
     @Override
     public void onLogout(SessionID sessionId) {
         LOGGER.warn("客户端断开连接时候调用此方法:{}", sessionId);
+        try {
+            Session.lookupSession(sessionId).reset();
+        } catch (IOException e) {
+            LOGGER.error(sessionId + ":" + e.getMessage(), e);
+        }
 
     }
 
@@ -64,10 +70,8 @@ public class FixClientApplication extends MessageCracker implements Application 
      */
     @Override
     public void toAdmin(Message message, SessionID sessionId) {
-        LOGGER.warn("发送会话消息时候调用此方法,sessionId={}, message={}", sessionId, message);
         if (isMessageOfType(message, MsgType.LOGON)) {
             message.setField(new EncryptMethod(EncryptMethod.NONE_OTHER));
-            message.setField(new HeartBtInt(35));
             message.getHeader().setField(new SendingTime(LocalDateTime.now()));
             try {
                 String sign = geLogonSign((Logon) message);
@@ -77,6 +81,9 @@ public class FixClientApplication extends MessageCracker implements Application 
                 LOGGER.error(e.getMessage(), e);
             }
         }
+
+        LOGGER.warn("发送会话消息时候调用此方法,sessionId={}, message={}", sessionId, message);
+
     }
 
     /**
@@ -84,10 +91,8 @@ public class FixClientApplication extends MessageCracker implements Application 
      *
      * @param message   the message
      * @param sessionId the session id
-     * @throws FieldNotFound       the field not found
-     * @throws IncorrectDataFormat the incorrect data format
-     * @throws IncorrectTagValue   the incorrect tag value
-     * @throws RejectLogon         the reject logon
+     * @throws FieldNotFound     the field not found
+     * @throws IncorrectTagValue the incorrect tag value
      */
     @Override
     public void fromAdmin(Message message, SessionID sessionId) throws FieldNotFound, IncorrectTagValue {
@@ -117,7 +122,6 @@ public class FixClientApplication extends MessageCracker implements Application 
      * @param message   the message
      * @param sessionId the session id
      * @throws FieldNotFound          the field not found
-     * @throws IncorrectDataFormat    the incorrect data format
      * @throws IncorrectTagValue      the incorrect tag value
      * @throws UnsupportedMessageType the unsupported message type
      */
@@ -255,11 +259,15 @@ public class FixClientApplication extends MessageCracker implements Application 
             case OrdStatus.NEW:
                 LOGGER.warn("create new order:{}", orderId);
                 break;
-            case OrdStatus.PENDING_CANCEL:
+            case OrdStatus.CANCELED:
                 LOGGER.warn("cancel order:{},msg={}", orderId, msg);
                 break;
         }
+    }
 
+    @Handler
+    public void onOrderCancelRejectMessage(OrderCancelReject message, SessionID sessionID) throws FieldNotFound {
+        LOGGER.warn("receive order cancel reject message,orderId={},msg={},message={}", message.getOrderID().getValue(), message.getText().getValue(), message);
     }
 
     /**
@@ -272,6 +280,30 @@ public class FixClientApplication extends MessageCracker implements Application 
     @Handler
     public void onRejectMessage(Reject message, SessionID sessionID) throws FieldNotFound {
         String msgType = message.getRefMsgType().getValue();
-        LOGGER.warn("receive order reject msg, msgType={}", msgType);
+        LOGGER.warn("receive reject msg={}, msgType={}", message.getText().getValue(), msgType);
+    }
+
+    /**
+     * On market date request reject message.
+     *
+     * @param message   the message
+     * @param sessionID the session id
+     * @throws FieldNotFound the field not found
+     */
+    @Handler
+    public void onMarketDateRequestRejectMessage(MarketDataRequestReject message, SessionID sessionID) throws FieldNotFound {
+        LOGGER.warn("receive market data reuquest reject:reqId={}, message:{}", message.getMDReqID().getValue(), message.toString());
+    }
+
+    /**
+     * On market data snapshot full refresh message.
+     *
+     * @param message   the message
+     * @param sessionID the session id
+     * @throws FieldNotFound the field not found
+     */
+    @Handler
+    public void onMarketDataSnapshotFullRefreshMessage(MarketDataSnapshotFullRefresh message, SessionID sessionID) throws FieldNotFound {
+        LOGGER.warn("receive market data snapshot response:reqId={}, message:{}", message.getMDReqID().getValue(), message.toString());
     }
 }

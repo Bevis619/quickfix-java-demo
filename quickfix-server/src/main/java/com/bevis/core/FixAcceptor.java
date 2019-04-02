@@ -15,7 +15,9 @@ import quickfix.MessageCracker;
 import quickfix.field.*;
 import quickfix.fix44.*;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -175,6 +177,54 @@ public class FixAcceptor extends MessageCracker implements Application {
     }
 
     /**
+     * On market request message.
+     *
+     * @param message   the message
+     * @param sessionID the session id
+     * @throws FieldNotFound the field not found
+     */
+    @Handler
+    public void onMarketRequestMessage(MarketDataRequest message, SessionID sessionID) throws FieldNotFound, SessionNotFound {
+        LOGGER.warn("receive market data:reqId={}, message:{}", message.getMDReqID().getValue(), message.toString());
+        Character subType = message.getSubscriptionRequestType().getValue();
+        Integer depth = message.getMarketDepth().getValue();
+        int noMDEntryField = new MarketDataRequest.NoMDEntryTypes().getFieldTag();
+        List<Group> groups = message.getGroups(noMDEntryField);
+
+        int noRelatedField = new MarketDataRequest.NoRelatedSym().getFieldTag();
+        List<Group> groups1 = message.getGroups(noRelatedField);
+
+        if (subType.compareTo(SubscriptionRequestType.SNAPSHOT) != 0) {
+            MarketDataRequestReject reject = new MarketDataRequestReject();
+            reject.set(new MDReqID(message.getMDReqID().getValue()));
+            reject.set(new MDReqRejReason(MDReqRejReason.UNSUPPORTED_SUBSCRIPTIONREQUESTTYPE));
+            reject.set(new Text("UNSUPPORTED SUBSCRIPTION REQUEST TYPE"));
+            Boolean result = Session.sendToTarget(reject, sessionID);
+            LOGGER.info("send market data request reject message:result={},reject={}", result, reject);
+        } else {
+            MarketDataSnapshotFullRefresh response = new MarketDataSnapshotFullRefresh();
+            response.set(new MDReqID(message.getMDReqID().getValue()));
+            response.set(new Symbol(groups1.get(0).getString(Symbol.FIELD)));
+            MarketDataSnapshotFullRefresh.NoMDEntries mdEntries = new MarketDataSnapshotFullRefresh.NoMDEntries();
+            mdEntries.set(new MDEntryType(MDEntryType.OFFER));
+            mdEntries.set(new MDEntryPx(0.000000568));
+            mdEntries.set(new MDEntrySize(999));
+            mdEntries.set(new MDEntryPositionNo(1));
+            response.addGroup(mdEntries);
+
+            MarketDataSnapshotFullRefresh.NoMDEntries mdEntries1 = new MarketDataSnapshotFullRefresh.NoMDEntries();
+            mdEntries1.set(new MDEntryType(MDEntryType.OFFER));
+            mdEntries1.set(new MDEntryPx(0.000000578));
+            mdEntries1.set(new MDEntrySize(888));
+            mdEntries1.set(new MDEntryPositionNo(2));
+            response.addGroup(mdEntries1);
+
+            Boolean result = Session.sendToTarget(response, sessionID);
+            LOGGER.info("send market data snapshot response message:result={},response={}", result, response);
+        }
+    }
+
+    /**
      * On message.
      *
      * @param message   the message
@@ -213,50 +263,6 @@ public class FixAcceptor extends MessageCracker implements Application {
     }
 
     /**
-     * From app.
-     *
-     * @param message   the message
-     * @param sessionId the session id
-     * @throws FieldNotFound          the field not found
-     * @throws IncorrectDataFormat    the incorrect data format
-     * @throws IncorrectTagValue      the incorrect tag value
-     * @throws UnsupportedMessageType the unsupported message type
-     */
-    @Override
-    public void fromApp(Message message, SessionID sessionId) {
-        String log = String.format(",sessionId=%s, message=%s", sessionId, message);
-        String accessKey = StringUtils.EMPTY;
-        try {
-            //1.校验
-            accessKey = message.getHeader().getString(SenderCompID.FIELD);
-            FixUserBO fixUserBO = FIX_API_USER_MAP.get(accessKey);
-            if (null == fixUserBO) {
-                throw new BizException(BizExceptionCodeEnum.API_FIX_USER_NOT_EXIST);
-            }
-
-            if (!fixUserBO.getIsValid()) {
-                throw new BizException(BizExceptionCodeEnum.API_FIX_USER_NO_PERMISSIONS);
-            }
-
-            //2.设置userNO到header
-            message.getHeader().setField(new SenderSubID(String.valueOf(fixUserBO.getUserNo())));
-            // 3.业务操作
-            crack(message, sessionId);
-        } catch (BizException e) {
-            Session session = Session.lookupSession(sessionId);
-            LOGGER.error(String.format("fix user valid failed:accesskey=%s,msg=%s", accessKey, e.getDesc()), e);
-            session.logout(String.valueOf(e.getDesc()));
-            session.sentLogout();
-        } catch (UnsupportedMessageType unsupportedMessageType) {
-            LOGGER.error("application message error: unsupported message type" + log, unsupportedMessageType);
-        } catch (FieldNotFound fieldNotFound) {
-            LOGGER.error("application message error:" + fieldNotFound.getMessage() + log, fieldNotFound);
-        } catch (IncorrectTagValue incorrectTagValue) {
-            LOGGER.error("application message error:" + incorrectTagValue.getMessage() + log, incorrectTagValue);
-        }
-    }
-
-    /**
      * On create.
      *
      * @param sessionId the session id
@@ -284,6 +290,11 @@ public class FixAcceptor extends MessageCracker implements Application {
     @Override
     public void onLogout(SessionID sessionId) {
         LOGGER.info("an fix session is no longer online:{}", sessionId);
+        try {
+            Session.lookupSession(sessionId).reset();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -330,5 +341,49 @@ public class FixAcceptor extends MessageCracker implements Application {
     @Override
     public void toApp(Message message, SessionID sessionId) {
         LOGGER.warn("send an application message: sessionId={}, message={}", sessionId, message);
+    }
+
+    /**
+     * From app.
+     *
+     * @param message   the message
+     * @param sessionId the session id
+     * @throws FieldNotFound          the field not found
+     * @throws IncorrectDataFormat    the incorrect data format
+     * @throws IncorrectTagValue      the incorrect tag value
+     * @throws UnsupportedMessageType the unsupported message type
+     */
+    @Override
+    public void fromApp(Message message, SessionID sessionId) {
+        String log = String.format(",sessionId=%s, message=%s", sessionId, message);
+        String accessKey = StringUtils.EMPTY;
+        try {
+            //1.校验
+            accessKey = message.getHeader().getString(SenderCompID.FIELD);
+            FixUserBO fixUserBO = FIX_API_USER_MAP.get(accessKey);
+            if (null == fixUserBO) {
+                throw new BizException(BizExceptionCodeEnum.API_FIX_USER_NOT_EXIST);
+            }
+
+            if (!fixUserBO.getIsValid()) {
+                throw new BizException(BizExceptionCodeEnum.API_FIX_USER_NO_PERMISSIONS);
+            }
+
+            //2.设置userNO到header
+            message.getHeader().setField(new SenderSubID(String.valueOf(fixUserBO.getUserNo())));
+            // 3.业务操作
+            crack(message, sessionId);
+        } catch (BizException e) {
+            Session session = Session.lookupSession(sessionId);
+            LOGGER.error(String.format("fix user valid failed:accesskey=%s,msg=%s", accessKey, e.getDesc()), e);
+            session.logout(String.valueOf(e.getDesc()));
+            session.sentLogout();
+        } catch (UnsupportedMessageType unsupportedMessageType) {
+            LOGGER.error("application message error: unsupported message type" + log, unsupportedMessageType);
+        } catch (FieldNotFound fieldNotFound) {
+            LOGGER.error("application message error:" + fieldNotFound.getMessage() + log, fieldNotFound);
+        } catch (IncorrectTagValue incorrectTagValue) {
+            LOGGER.error("application message error:" + incorrectTagValue.getMessage() + log, incorrectTagValue);
+        }
     }
 }
