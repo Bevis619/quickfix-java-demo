@@ -4,6 +4,7 @@ import com.bevis.utils.Md5Util;
 import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import quickfix.*;
 import quickfix.Message;
@@ -26,6 +27,9 @@ import java.util.TreeSet;
 @Service
 @Slf4j
 public class FixClientApplication extends MessageCracker implements Application {
+
+    @Value("${fix.api.gsx.secretKey}")
+    private String secretKey;
     /**
      * On create.
      *
@@ -145,7 +149,7 @@ public class FixClientApplication extends MessageCracker implements Application 
         map.put(SenderCompID.class.getSimpleName(), message.getHeader().getString(SenderCompID.FIELD));
         map.put(TargetCompID.class.getSimpleName(), message.getHeader().getString(TargetCompID.FIELD));
         map.put(SendingTime.class.getSimpleName(), message.getHeader().getString(SendingTime.FIELD));
-        map.put("$secretKey", "d741bc45-d53a-4343-b97b-0f5f179ce8fe");
+        map.put("$secretKey", secretKey);
         String splicer = ",";
         SortedSet<String> sortedSet = new TreeSet(map.keySet());
         StringBuilder sortedStr = new StringBuilder();

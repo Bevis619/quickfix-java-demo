@@ -5,7 +5,7 @@ import com.bevis.messages.MyMessage;
 import com.bevis.model.FixUserBO;
 import com.bevis.model.LogonBO;
 import com.google.common.collect.Maps;
-import exceptions.BizException;
+import com.bevis.exceptions.BizException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;

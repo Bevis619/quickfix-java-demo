@@ -1,4 +1,4 @@
-package exceptions;
+package com.bevis.exceptions;
 
 
 import com.bevis.enums.BizExceptionCodeEnum;
