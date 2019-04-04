@@ -39,9 +39,10 @@ public class ClientController {
 
     /**
      * 发送登陆消息.
-     * @see <a href="http://localhost:9092/order/logon">按住ctrl+鼠标左键发送请求</a>
+     *
      * @return the boolean
      * @throws SessionNotFound the session not found
+     * @see <a href="http://localhost:9092/order/logon">按住ctrl+鼠标左键发送请求</a>
      */
     @GetMapping("/logon")
     public Boolean logon() {
@@ -53,8 +54,9 @@ public class ClientController {
 
     /**
      * 发送注销消息.
-     * @see <a href="http://localhost:9092/order/logout">按住ctrl+鼠标左键发送请求</a>
+     *
      * @return the boolean
+     * @see <a href="http://localhost:9092/order/logout">按住ctrl+鼠标左键发送请求</a>
      */
     @GetMapping("/logout")
     public Boolean logout() {
@@ -64,34 +66,13 @@ public class ClientController {
         return true;
     }
 
-    /**
-     * 下单委托消息.
-     * @see <a href="http://localhost:9092/order/new">按住ctrl+鼠标左键发送请求</a>
-     * @return the string
-     * @throws SessionNotFound the session not found
-     */
-    @GetMapping("/new")
-    public Boolean newOrder() throws SessionNotFound {
-        SessionID sessionID = fixClient.sessionIds().get(0);
-        // 6300 USD限价买入0.1 BTC
-        NewOrderSingle order = new NewOrderSingle();
-        order.set(new ClOrdID(UUID.randomUUID().toString()));
-        order.set(new Symbol("BTC/USD"));
-        order.set(new Price(6300));
-        order.set(new Side(Side.BUY));
-        order.set(new OrdType(OrdType.LIMIT));
-        order.set(new OrderQty(0.1));
-        order.set(new CashOrderQty(0));
-        order.set(new TransactTime(LocalDateTime.now()));
-        boolean result = Session.sendToTarget(order, sessionID);
-        return result;
-    }
 
     /**
      * 撤单委托消息.
-     * @see <a href="http://localhost:9092/order/cancel">按住ctrl+鼠标左键发送请求</a>
+     *
      * @return the boolean
      * @throws SessionNotFound the session not found
+     * @see <a href="http://localhost:9092/order/cancel">按住ctrl+鼠标左键发送请求</a>
      */
     @GetMapping("/cancel")
     public Boolean cancelOrder() throws SessionNotFound {
@@ -109,9 +90,10 @@ public class ClientController {
 
     /**
      * 查询未完成订单消息.
-     * @see <a href="http://localhost:9092/order/list/status">按住ctrl+鼠标左键发送请求</a>
+     *
      * @return the boolean
      * @throws SessionNotFound the session not found
+     * @see <a href="http://localhost:9092/order/list/status">按住ctrl+鼠标左键发送请求</a>
      */
     @GetMapping("/list/status")
     public Boolean queryOrderListStatus() throws SessionNotFound {
@@ -124,9 +106,10 @@ public class ClientController {
 
     /**
      * 查询深度行情数据.
-     * @see <a href="http://localhost:9092/order/depth">按住ctrl+鼠标左键发送请求</a>
+     *
      * @return the boolean
      * @throws SessionNotFound the session not found
+     * @see <a href="http://localhost:9092/order/depth">按住ctrl+鼠标左键发送请求</a>
      */
     @GetMapping("/depth")
     public Boolean sendDepthMessage() throws SessionNotFound {
@@ -153,9 +136,10 @@ public class ClientController {
 
     /**
      * 查询实时行情数据.
-     * @see <a href="http://localhost:9092/order/live">按住ctrl+鼠标左键发送请求</a>
+     *
      * @return the boolean
      * @throws SessionNotFound the session not found
+     * @see <a href="http://localhost:9092/order/live">按住ctrl+鼠标左键发送请求</a>
      */
     @GetMapping("/live")
     public Boolean sendLiveMessage() throws SessionNotFound {
@@ -179,9 +163,10 @@ public class ClientController {
 
     /**
      * 查询实时行情数据.
-     * @see <a href="http://localhost:9092/order/k">按住ctrl+鼠标左键发送请求</a>
+     *
      * @return the boolean
      * @throws SessionNotFound the session not found
+     * @see <a href="http://localhost:9092/order/k">按住ctrl+鼠标左键发送请求</a>
      */
     @GetMapping("/k")
     public Boolean sendKMessage() throws SessionNotFound {
@@ -253,5 +238,42 @@ public class ClientController {
         SessionID sessionID = fixClient.sessionIds().get(0);
         boolean result = Session.sendToTarget(message, sessionID);
         return result;
+    }
+
+    /**
+     * 下单委托消息.
+     *
+     * @return the string
+     * @throws SessionNotFound the session not found
+     * @see <a href="http://localhost:9092/order/new">按住ctrl+鼠标左键发送请求</a>
+     */
+    @GetMapping("/new")
+    public Boolean newOrder() throws SessionNotFound {
+        SessionID sessionID = fixClient.sessionIds().get(0);
+        // 6300 USD限价买入0.1 BTC
+        NewOrderSingle order = new NewOrderSingle();
+        order.set(new ClOrdID(UUID.randomUUID().toString()));
+        order.set(new Symbol("BTC/USD"));
+        order.set(new Price(6300));
+        order.set(new Side(Side.BUY));
+        order.set(new OrdType(OrdType.LIMIT));
+        order.set(new OrderQty(0.1));
+        order.set(new CashOrderQty(0));
+        order.set(new TransactTime(LocalDateTime.now()));
+        return Session.sendToTarget(order, sessionID);
+    }
+
+    /**
+     * 未完成订单查询消息
+     *
+     * @return the boolean
+     * @throws SessionNotFound the session not found
+     * @see <a href="http://localhost:9092/order/queryOrder">按住ctrl+鼠标左键发送请求</a>
+     */
+    @GetMapping("/queryOrder")
+    public Boolean sendQueryOrderList() throws SessionNotFound {
+        ListStatusRequest request = new ListStatusRequest(new ListID("1620883476295774201,1620883476295774202,1620883476295774203"));
+        SessionID sessionID = fixClient.sessionIds().get(0);
+        return Session.sendToTarget(request, sessionID);
     }
 }
