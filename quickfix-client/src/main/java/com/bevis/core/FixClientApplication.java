@@ -1,9 +1,10 @@
 package com.bevis.core;
 
+import com.alibaba.fastjson.JSON;
+import com.bevis.model.*;
 import com.bevis.utils.Md5Util;
 import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import quickfix.*;
@@ -28,8 +29,12 @@ import java.util.TreeSet;
 @Slf4j
 public class FixClientApplication extends MessageCracker implements Application {
 
+    /**
+     * The Secret key.
+     */
     @Value("${fix.api.gsx.secretKey}")
     private String secretKey;
+
     /**
      * On create.
      *
@@ -229,20 +234,7 @@ public class FixClientApplication extends MessageCracker implements Application 
     }
 
     /**
-     * On order cancel message.
-     *
-     * @param message   the message
-     * @param sessionId the session id
-     * @throws FieldNotFound the field not found
-     */
-    @Handler
-    public void onOrderCancelMessage(OrderCancelRequest message, SessionID sessionId) throws FieldNotFound {
-        String orderId = message.getString(OrderID.FIELD);
-        LOGGER.warn("receive order cancel msg, orderId={}", orderId);
-    }
-
-    /**
-     * On execution report message.
+     * 收到下单委托、撤单委托执行结果消息.
      *
      * @param message   the message
      * @param sessionID the session id
@@ -250,45 +242,45 @@ public class FixClientApplication extends MessageCracker implements Application 
      */
     @Handler
     public void onExecutionReportMessage(ExecutionReport message, SessionID sessionID) throws FieldNotFound {
-        String orderId = message.getString(OrderID.FIELD);
-        String cOrdId = message.getString(ClOrdID.FIELD);
-        char ordStatus = message.getChar(OrdStatus.FIELD);
-        String msg = StringUtils.EMPTY;
-        if (message.isSetField(Text.FIELD)) {
-            msg = message.getString(Text.FIELD);
-        }
-
-        LOGGER.warn("receive order execution report msg, orderId={},msg={}", orderId, msg);
-        switch (ordStatus) {
+        ExecutionReportBO bo = new ExecutionReportBO(message);
+        LOGGER.warn("receive order execution report json={}, message={}", JSON.toJSONString(bo), message);
+        switch (bo.getOrdStatus()) {
             case OrdStatus.NEW:
-                LOGGER.warn("create new order:{}", orderId);
+                LOGGER.warn("create new order:orderID={}，text={}", bo.getOrderID(), bo.getText());
                 break;
             case OrdStatus.CANCELED:
-                LOGGER.warn("cancel order:{},msg={}", orderId, msg);
+                LOGGER.warn("cancel order:orderID={},text={}", bo.getOrderID(), bo.getText());
                 break;
         }
-    }
-
-    @Handler
-    public void onOrderCancelRejectMessage(OrderCancelReject message, SessionID sessionID) throws FieldNotFound {
-        LOGGER.warn("receive order cancel reject message,orderId={},msg={},message={}", message.getOrderID().getValue(), message.getText().getValue(), message);
     }
 
     /**
-     * On reject message.
+     * 收到撤单拒绝消息.
      *
      * @param message   the message
      * @param sessionID the session id
      * @throws FieldNotFound the field not found
      */
     @Handler
-    public void onRejectMessage(Reject message, SessionID sessionID) throws FieldNotFound {
-        String msgType = message.getRefMsgType().getValue();
-        LOGGER.warn("receive reject msg={}, msgType={}", message.getText().getValue(), msgType);
+    public void onOrderCancelRejectMessage(OrderCancelReject message, SessionID sessionID) throws FieldNotFound {
+        OrderCancelRejectBO bo = new OrderCancelRejectBO(message);
+        LOGGER.warn("receive order cancel reject json={}, message={}", JSON.toJSONString(bo), message);
     }
 
     /**
-     * On market date request reject message.
+     * 收到查询未完成订单消息.
+     *
+     * @param message   the messag
+     * @param sessionID the session id
+     */
+    @Handler
+    public void onListStatusMessage(ListStatus message, SessionID sessionID) throws FieldNotFound {
+        ListStatusBO bo = new ListStatusBO(message);
+        LOGGER.warn("receive order list status json={}, message={}", JSON.toJSONString(bo), message);
+    }
+
+    /**
+     * 收到行情拒绝消息.
      *
      * @param message   the message
      * @param sessionID the session id
@@ -296,11 +288,12 @@ public class FixClientApplication extends MessageCracker implements Application 
      */
     @Handler
     public void onMarketDateRequestRejectMessage(MarketDataRequestReject message, SessionID sessionID) throws FieldNotFound {
-        LOGGER.warn("receive market data reuquest reject:reqId={}, message:{}", message.getMDReqID().getValue(), message.toString());
+        MarketDataRejectBO bo = new MarketDataRejectBO(message);
+        LOGGER.warn("receive market data reject json={}, message={}", JSON.toJSONString(bo), message);
     }
 
     /**
-     * On market data snapshot full refresh message.
+     * 收到行情响应结果消息
      *
      * @param message   the message
      * @param sessionID the session id
@@ -308,6 +301,7 @@ public class FixClientApplication extends MessageCracker implements Application 
      */
     @Handler
     public void onMarketDataSnapshotFullRefreshMessage(MarketDataSnapshotFullRefresh message, SessionID sessionID) throws FieldNotFound {
-        LOGGER.warn("receive market data snapshot response:reqId={}, message:{}", message.getMDReqID().getValue(), message.toString());
+        MarketDataBO bo = new MarketDataBO(message);
+        LOGGER.warn("receive market data response json={},message={}", JSON.toJSONString(bo), message);
     }
 }

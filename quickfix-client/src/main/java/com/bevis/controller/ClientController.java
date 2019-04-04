@@ -14,10 +14,7 @@ import quickfix.Session;
 import quickfix.SessionID;
 import quickfix.SessionNotFound;
 import quickfix.field.*;
-import quickfix.fix44.ListStatusRequest;
-import quickfix.fix44.MarketDataRequest;
-import quickfix.fix44.OrderCancelRequest;
-import quickfix.fix44.OrderStatusRequest;
+import quickfix.fix44.*;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -41,13 +38,13 @@ public class ClientController {
     private FixClient fixClient;
 
     /**
-     * Logon boolean.
-     *
+     * 发送登陆消息.
+     * @see <a href="http://localhost:9092/order/logon">按住ctrl+鼠标左键发送请求</a>
      * @return the boolean
      * @throws SessionNotFound the session not found
      */
     @GetMapping("/logon")
-    public Boolean logon() throws SessionNotFound {
+    public Boolean logon() {
         SessionID sessionID = fixClient.sessionIds().get(0);
         Session session = Session.lookupSession(sessionID);
         session.logon();
@@ -55,41 +52,44 @@ public class ClientController {
     }
 
     /**
-     * Logout boolean.
-     *
+     * 发送注销消息.
+     * @see <a href="http://localhost:9092/order/logout">按住ctrl+鼠标左键发送请求</a>
      * @return the boolean
      */
     @GetMapping("/logout")
     public Boolean logout() {
         SessionID sessionID = fixClient.sessionIds().get(0);
         Session session = Session.lookupSession(sessionID);
-        session.logout();
+        session.logout("I miss U");
         return true;
     }
 
     /**
-     * New order string.
-     *
+     * 下单委托消息.
+     * @see <a href="http://localhost:9092/order/new">按住ctrl+鼠标左键发送请求</a>
      * @return the string
      * @throws SessionNotFound the session not found
      */
     @GetMapping("/new")
     public Boolean newOrder() throws SessionNotFound {
         SessionID sessionID = fixClient.sessionIds().get(0);
-        quickfix.fix44.NewOrderSingle newOrderSingle = new quickfix.fix44.NewOrderSingle(
-                new ClOrdID("IT001"), new Side(Side.BUY),
-                new TransactTime(LocalDateTime.now()), new OrdType(OrdType.MARKET));
-        newOrderSingle.set(new OrderQty(0));
-        newOrderSingle.set(new CashOrderQty(0));
-        newOrderSingle.set(new Price(0));
-        newOrderSingle.set(new Symbol("BTC/USD"));
-        boolean result = Session.sendToTarget(newOrderSingle, sessionID);
+        // 6300 USD限价买入0.1 BTC
+        NewOrderSingle order = new NewOrderSingle();
+        order.set(new ClOrdID(UUID.randomUUID().toString()));
+        order.set(new Symbol("BTC/USD"));
+        order.set(new Price(6300));
+        order.set(new Side(Side.BUY));
+        order.set(new OrdType(OrdType.LIMIT));
+        order.set(new OrderQty(0.1));
+        order.set(new CashOrderQty(0));
+        order.set(new TransactTime(LocalDateTime.now()));
+        boolean result = Session.sendToTarget(order, sessionID);
         return result;
     }
 
     /**
-     * Cancel order boolean.
-     *
+     * 撤单委托消息.
+     * @see <a href="http://localhost:9092/order/cancel">按住ctrl+鼠标左键发送请求</a>
      * @return the boolean
      * @throws SessionNotFound the session not found
      */
@@ -101,47 +101,122 @@ public class ClientController {
         request.set(new OrderID("123"));
         request.set(new OrigClOrdID("XXX"));
         request.set(new Side(Side.BUY));
-        request.set(new Symbol("BTC"));
+        request.set(new Symbol("BTC/USD"));
         request.set(new TransactTime(LocalDateTime.now()));
         boolean result = Session.sendToTarget(request, sessionID);
         return result;
     }
 
     /**
-     * Query order state boolean.
-     *
+     * 查询未完成订单消息.
+     * @see <a href="http://localhost:9092/order/list/status">按住ctrl+鼠标左键发送请求</a>
      * @return the boolean
      * @throws SessionNotFound the session not found
      */
-    @GetMapping("/state")
-    public Boolean queryOrderState() throws SessionNotFound {
-        OrderStatusRequest request = new OrderStatusRequest();
-        SessionID sessionID = fixClient.sessionIds().get(0);
-        request.set(new OrderID("IT0002"));
-        request.set(new ClOrdID("*"));
-        request.set(new Symbol("*"));
-        request.set(new Side(Side.BUY));
-        boolean result = Session.sendToTarget(request, sessionID);
-        return result;
-    }
-
-    /**
-     * Query order list state boolean.
-     *
-     * @return the boolean
-     * @throws SessionNotFound the session not found
-     */
-    @GetMapping("/list/state")
-    public Boolean queryOrderListState() throws SessionNotFound {
+    @GetMapping("/list/status")
+    public Boolean queryOrderListStatus() throws SessionNotFound {
         ListStatusRequest request = new ListStatusRequest();
         SessionID sessionID = fixClient.sessionIds().get(0);
-        request.set(new ListID("IT001;IT002;IT003;IT004"));
+        request.set(new ListID("*"));
         boolean result = Session.sendToTarget(request, sessionID);
         return result;
     }
 
     /**
-     * Send my message boolean.
+     * 查询深度行情数据.
+     * @see <a href="http://localhost:9092/order/depth">按住ctrl+鼠标左键发送请求</a>
+     * @return the boolean
+     * @throws SessionNotFound the session not found
+     */
+    @GetMapping("/depth")
+    public Boolean sendDepthMessage() throws SessionNotFound {
+        MarketDataRequest message = new MarketDataRequest();
+        message.set(new MDReqID(UUID.randomUUID().toString()));
+        message.set(new SubscriptionRequestType(SubscriptionRequestType.SNAPSHOT));
+        message.set(new MarketDepth(10));
+
+        MarketDataRequest.NoMDEntryTypes noMDEntryTypes = new MarketDataRequest.NoMDEntryTypes();
+        noMDEntryTypes.set(new MDEntryType(MDEntryType.BID));
+        message.addGroup(noMDEntryTypes);
+        MarketDataRequest.NoMDEntryTypes noMDEntryTypes1 = new MarketDataRequest.NoMDEntryTypes();
+        noMDEntryTypes1.set(new MDEntryType(MDEntryType.OFFER));
+        message.addGroup(noMDEntryTypes1);
+
+        MarketDataRequest.NoRelatedSym noRelatedSym = new MarketDataRequest.NoRelatedSym();
+        noRelatedSym.set(new Symbol("BTC/USD"));
+        message.addGroup(noRelatedSym);
+
+        SessionID sessionID = fixClient.sessionIds().get(0);
+        boolean result = Session.sendToTarget(message, sessionID);
+        return result;
+    }
+
+    /**
+     * 查询实时行情数据.
+     * @see <a href="http://localhost:9092/order/live">按住ctrl+鼠标左键发送请求</a>
+     * @return the boolean
+     * @throws SessionNotFound the session not found
+     */
+    @GetMapping("/live")
+    public Boolean sendLiveMessage() throws SessionNotFound {
+        MarketDataRequest message = new MarketDataRequest();
+        message.set(new MDReqID(UUID.randomUUID().toString()));
+        message.set(new SubscriptionRequestType(SubscriptionRequestType.SNAPSHOT));
+        message.set(new MarketDepth(10));
+
+        MarketDataRequest.NoMDEntryTypes noMDEntryTypes = new MarketDataRequest.NoMDEntryTypes();
+        noMDEntryTypes.set(new MDEntryType(MDEntryType.TRADE));
+        message.addGroup(noMDEntryTypes);
+
+        MarketDataRequest.NoRelatedSym noRelatedSym = new MarketDataRequest.NoRelatedSym();
+        noRelatedSym.set(new Symbol("BTC/USD"));
+        message.addGroup(noRelatedSym);
+
+        SessionID sessionID = fixClient.sessionIds().get(0);
+        boolean result = Session.sendToTarget(message, sessionID);
+        return result;
+    }
+
+    /**
+     * 查询实时行情数据.
+     * @see <a href="http://localhost:9092/order/k">按住ctrl+鼠标左键发送请求</a>
+     * @return the boolean
+     * @throws SessionNotFound the session not found
+     */
+    @GetMapping("/k")
+    public Boolean sendKMessage() throws SessionNotFound {
+        MarketDataRequest message = new MarketDataRequest();
+        message.set(new MDReqID(UUID.randomUUID().toString()));
+        message.set(new SubscriptionRequestType(SubscriptionRequestType.SNAPSHOT));
+        message.set(new MarketDepth(5));
+
+        MarketDataRequest.NoMDEntryTypes noMDEntryTypes = new MarketDataRequest.NoMDEntryTypes();
+        noMDEntryTypes.set(new MDEntryType(MDEntryType.OPENING_PRICE));
+        message.addGroup(noMDEntryTypes);
+        MarketDataRequest.NoMDEntryTypes noMDEntryTypes1 = new MarketDataRequest.NoMDEntryTypes();
+        noMDEntryTypes1.set(new MDEntryType(MDEntryType.CLOSING_PRICE));
+        message.addGroup(noMDEntryTypes1);
+        MarketDataRequest.NoMDEntryTypes noMDEntryTypes2 = new MarketDataRequest.NoMDEntryTypes();
+        noMDEntryTypes2.set(new MDEntryType(MDEntryType.TRADING_SESSION_HIGH_PRICE));
+        message.addGroup(noMDEntryTypes2);
+        MarketDataRequest.NoMDEntryTypes noMDEntryTypes3 = new MarketDataRequest.NoMDEntryTypes();
+        noMDEntryTypes3.set(new MDEntryType(MDEntryType.TRADING_SESSION_LOW_PRICE));
+        message.addGroup(noMDEntryTypes3);
+        MarketDataRequest.NoMDEntryTypes noMDEntryTypes4 = new MarketDataRequest.NoMDEntryTypes();
+        noMDEntryTypes4.set(new MDEntryType(MDEntryType.TRADE_VOLUME));
+        message.addGroup(noMDEntryTypes4);
+
+        MarketDataRequest.NoRelatedSym noRelatedSym = new MarketDataRequest.NoRelatedSym();
+        noRelatedSym.set(new Symbol("BTC/USD"));
+        message.addGroup(noRelatedSym);
+
+        SessionID sessionID = fixClient.sessionIds().get(0);
+        boolean result = Session.sendToTarget(message, sessionID);
+        return result;
+    }
+
+    /**
+     * 发送自定义消息.
      *
      * @return the boolean
      * @throws SessionNotFound the session not found
@@ -156,35 +231,25 @@ public class ClientController {
         return result;
     }
 
-    /**
-     * Send market date message boolean.
-     *
-     * @return the boolean
-     * @throws SessionNotFound the session not found
-     */
-    @GetMapping("/bid")
-    public Boolean sendMarketDateMessage() throws SessionNotFound {
-        MarketDataRequest message = new MarketDataRequest();
-        message.set(new MDReqID("RQ001"));
-        message.set(new SubscriptionRequestType(SubscriptionRequestType.SNAPSHOT));
-        message.set(new MarketDepth(0));
-
-        MarketDataRequest.NoMDEntryTypes noMDEntryTypes = new MarketDataRequest.NoMDEntryTypes();
-        noMDEntryTypes.set(new MDEntryType(MDEntryType.TRADE));
-        message.addGroup(noMDEntryTypes);
-
-//        MarketDataRequest.NoMDEntryTypes noMDEntryTypes1 = new MarketDataRequest.NoMDEntryTypes();
-//        noMDEntryTypes1.set(new MDEntryType(MDEntryType.OFFER));
-//        message.addGroup(noMDEntryTypes1);
-//
-//        MarketDataRequest.NoRelatedSym noRelatedSym = new MarketDataRequest.NoRelatedSym();
-//        noRelatedSym.set(new Symbol("CEN/BTC"));
-//        message.addGroup(noRelatedSym);
-
-        MarketDataRequest.NoRelatedSym noRelatedSym1 = new MarketDataRequest.NoRelatedSym();
-        noRelatedSym1.set(new Symbol("XRP/BTC"));
-        message.addGroup(noRelatedSym1);
-
+    @GetMapping("/test")
+    public Boolean test() throws SessionNotFound {
+        ListStatus message = new ListStatus();
+        message.set(new ListID("123"));
+        message.set(new ListStatusType(ListStatusType.RESPONSE));
+        message.set(new NoRpts(0));
+        message.set(new ListOrderStatus(ListOrderStatus.ALERT));
+        message.set(new RptSeq(0));
+        message.set(new TotNoOrders(1));
+        message.set(new ListStatusText("fdhafda"));
+        ListStatus.NoOrders orders = new ListStatus.NoOrders();
+        orders.set(new ClOrdID("*"));
+        orders.set(new CumQty(0));
+        orders.set(new OrdStatus(OrdStatus.STOPPED));
+        orders.set(new LeavesQty(0));
+        orders.set(new CxlQty(0));
+        orders.set(new AvgPx(0));
+        message.addGroup(orders);
+        message.set(new TransactTime(LocalDateTime.now()));
         SessionID sessionID = fixClient.sessionIds().get(0);
         boolean result = Session.sendToTarget(message, sessionID);
         return result;

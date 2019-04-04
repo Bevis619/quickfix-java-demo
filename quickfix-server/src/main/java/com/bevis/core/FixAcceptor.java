@@ -1,11 +1,11 @@
 package com.bevis.core;
 
 import com.bevis.enums.BizExceptionCodeEnum;
+import com.bevis.exceptions.BizException;
 import com.bevis.messages.MyMessage;
 import com.bevis.model.FixUserBO;
 import com.bevis.model.LogonBO;
 import com.google.common.collect.Maps;
-import com.bevis.exceptions.BizException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
@@ -222,6 +222,11 @@ public class FixAcceptor extends MessageCracker implements Application {
             Boolean result = Session.sendToTarget(response, sessionID);
             LOGGER.info("send market data snapshot response message:result={},response={}", result, response);
         }
+    }
+
+    @Handler
+    public void onTestMessage(ListStatus message, SessionID sessionID) {
+        LOGGER.warn("test message:{}", message);
     }
 
     /**
