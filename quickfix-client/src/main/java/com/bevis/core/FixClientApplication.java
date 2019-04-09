@@ -285,7 +285,7 @@ public class FixClientApplication extends MessageCracker implements Application 
             case OrdStatus.NEW:
                 LOGGER.warn("create new order:orderID={}，text={}", bo.getOrderID(), bo.getText());
                 break;
-            case OrdStatus.CANCELED:
+            case OrdStatus.PENDING_CANCEL:
                 LOGGER.warn("cancel order:orderID={},text={}", bo.getOrderID(), bo.getText());
                 break;
             default:
