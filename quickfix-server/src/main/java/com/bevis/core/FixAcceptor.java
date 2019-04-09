@@ -65,6 +65,11 @@ public class FixAcceptor extends MessageCracker implements Application {
                 throw new BizException(BizExceptionCodeEnum.API_FIX_USER_NO_PERMISSIONS);
             }
 
+            if(!bo.getHeartBtInt().equals(30)){
+                throw new BizException(BizExceptionCodeEnum.API_FIX_USER_HEART_BEAT_ERROR);
+            }
+
+
             // 2.验签签名
             String sign = bo.getSign(fixUserBO.getSecretkey());
             boolean result = StringUtils.equals(sign, bo.getRawData());

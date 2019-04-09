@@ -4,12 +4,14 @@ import com.bevis.core.FixClient;
 import com.bevis.fields.MyPriceField;
 import com.bevis.fields.MyStringField;
 import com.bevis.messages.MyMessage;
+import com.bevis.vo.CancelOrderVO;
+import com.bevis.vo.LoginVO;
+import com.bevis.vo.NewOrderVO;
+import com.bevis.vo.QueryOrderVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import quickfix.Session;
 import quickfix.SessionID;
 import quickfix.SessionNotFound;
@@ -26,11 +28,13 @@ import java.util.UUID;
  * @date 2019 -03-06
  */
 @Validated
+@ResponseBody
 @RestController
 @RequestMapping("/order")
 @Slf4j
 public class ClientController {
 
+    public static LoginVO loginVO;
     /**
      * The Fix client.
      */
@@ -44,8 +48,9 @@ public class ClientController {
      * @throws SessionNotFound the session not found
      * @see <a href="http://localhost:9092/order/logon">按住ctrl+鼠标左键发送请求</a>
      */
-    @GetMapping("/logon")
-    public Boolean logon() {
+    @PostMapping("/logon")
+    public Boolean logon(@RequestBody LoginVO vo) {
+        loginVO = vo;
         SessionID sessionID = fixClient.sessionIds().get(0);
         Session session = Session.lookupSession(sessionID);
         session.logon();
@@ -63,9 +68,45 @@ public class ClientController {
         SessionID sessionID = fixClient.sessionIds().get(0);
         Session session = Session.lookupSession(sessionID);
         session.logout("I miss U");
+        loginVO = null;
         return true;
     }
 
+    /**
+     * 发送心跳消息.
+     *
+     * @return the boolean
+     * @see <a href="http://localhost:9092/heartbeat">按住ctrl+鼠标左键发送请求</a>
+     */
+    @GetMapping("/heartbeat")
+    public Boolean heartbeat() {
+        SessionID sessionID = fixClient.sessionIds().get(0);
+        Session session = Session.lookupSession(sessionID);
+        session.generateHeartbeat();
+        return true;
+    }
+
+    /**
+     * 下单委托消息.
+     *
+     * @return the string
+     * @throws SessionNotFound the session not found
+     * @see <a href="http://localhost:9092/order/new">按住ctrl+鼠标左键发送请求</a>
+     */
+    @PostMapping("/new")
+    public Boolean newOrder(@RequestBody NewOrderVO vo) throws SessionNotFound {
+        SessionID sessionID = fixClient.sessionIds().get(0);
+        NewOrderSingle order = new NewOrderSingle();
+        order.set(new ClOrdID(vo.getClOrdID()));
+        order.set(new Symbol(vo.getSymbol()));
+        order.set(new Price(vo.getPrice().doubleValue()));
+        order.set(new Side(vo.getSide()));
+        order.set(new OrdType(vo.getOrdType()));
+        order.set(new OrderQty(vo.getOrderQty().doubleValue()));
+        order.set(new CashOrderQty(vo.getCashOrderQty().doubleValue()));
+        order.set(new TransactTime(LocalDateTime.now()));
+        return Session.sendToTarget(order, sessionID);
+    }
 
     /**
      * 撤单委托消息.
@@ -74,34 +115,32 @@ public class ClientController {
      * @throws SessionNotFound the session not found
      * @see <a href="http://localhost:9092/order/cancel">按住ctrl+鼠标左键发送请求</a>
      */
-    @GetMapping("/cancel")
-    public Boolean cancelOrder() throws SessionNotFound {
+    @PostMapping("/cancel")
+    public Boolean cancelOrder(@RequestBody CancelOrderVO vo) throws SessionNotFound {
         SessionID sessionID = fixClient.sessionIds().get(0);
         OrderCancelRequest request = new OrderCancelRequest();
-        request.set(new ClOrdID(UUID.randomUUID().toString()));
-        request.set(new OrderID("123"));
-        request.set(new OrigClOrdID("XXX"));
-        request.set(new Side(Side.BUY));
-        request.set(new Symbol("BTC/USD"));
+        request.set(new ClOrdID(vo.getClOrdID()));
+        request.set(new OrderID(vo.getOrderID()));
+        request.set(new OrigClOrdID(vo.getOrigClOrdID()));
+        request.set(new Side(vo.getSide()));
+        request.set(new Symbol(vo.getSymbol()));
         request.set(new TransactTime(LocalDateTime.now()));
         boolean result = Session.sendToTarget(request, sessionID);
         return result;
     }
 
     /**
-     * 查询未完成订单消息.
+     * 未完成订单查询消息
      *
      * @return the boolean
      * @throws SessionNotFound the session not found
-     * @see <a href="http://localhost:9092/order/list/status">按住ctrl+鼠标左键发送请求</a>
+     * @see <a href="http://localhost:9092/order/queryOrder">按住ctrl+鼠标左键发送请求</a>
      */
-    @GetMapping("/list/status")
-    public Boolean queryOrderListStatus() throws SessionNotFound {
-        ListStatusRequest request = new ListStatusRequest();
+    @PostMapping("/queryOrder")
+    public Boolean sendQueryOrderList(@RequestBody QueryOrderVO vo) throws SessionNotFound {
+        ListStatusRequest request = new ListStatusRequest(new ListID(vo.getListID()));
         SessionID sessionID = fixClient.sessionIds().get(0);
-        request.set(new ListID("*"));
-        boolean result = Session.sendToTarget(request, sessionID);
-        return result;
+        return Session.sendToTarget(request, sessionID);
     }
 
     /**
@@ -238,42 +277,5 @@ public class ClientController {
         SessionID sessionID = fixClient.sessionIds().get(0);
         boolean result = Session.sendToTarget(message, sessionID);
         return result;
-    }
-
-    /**
-     * 下单委托消息.
-     *
-     * @return the string
-     * @throws SessionNotFound the session not found
-     * @see <a href="http://localhost:9092/order/new">按住ctrl+鼠标左键发送请求</a>
-     */
-    @GetMapping("/new")
-    public Boolean newOrder() throws SessionNotFound {
-        SessionID sessionID = fixClient.sessionIds().get(0);
-        // 6300 USD限价买入0.1 BTC
-        NewOrderSingle order = new NewOrderSingle();
-        order.set(new ClOrdID(UUID.randomUUID().toString()));
-        order.set(new Symbol("BTC/USD"));
-        order.set(new Price(6300));
-        order.set(new Side(Side.BUY));
-        order.set(new OrdType(OrdType.LIMIT));
-        order.set(new OrderQty(0.1));
-        order.set(new CashOrderQty(0));
-        order.set(new TransactTime(LocalDateTime.now()));
-        return Session.sendToTarget(order, sessionID);
-    }
-
-    /**
-     * 未完成订单查询消息
-     *
-     * @return the boolean
-     * @throws SessionNotFound the session not found
-     * @see <a href="http://localhost:9092/order/queryOrder">按住ctrl+鼠标左键发送请求</a>
-     */
-    @GetMapping("/queryOrder")
-    public Boolean sendQueryOrderList() throws SessionNotFound {
-        ListStatusRequest request = new ListStatusRequest(new ListID("1620883476295774201,1620883476295774202,1620883476295774203"));
-        SessionID sessionID = fixClient.sessionIds().get(0);
-        return Session.sendToTarget(request, sessionID);
     }
 }

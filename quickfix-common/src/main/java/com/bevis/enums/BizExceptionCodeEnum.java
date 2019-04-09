@@ -81,6 +81,7 @@ public enum BizExceptionCodeEnum {
      * The Api fix user no permissions.
      */
     API_FIX_USER_NO_PERMISSIONS(205002, "no permissions", "未开通权限"),
+    API_FIX_USER_HEART_BEAT_ERROR(205004, "the parameter 'HeartBtInt' is fixed to 30 seconds", "心跳时间固定为30s"),
     /**
      * The Api fix user logon sign error.
      */

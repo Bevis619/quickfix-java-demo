@@ -1,10 +1,13 @@
 package com.bevis.core;
 
 import com.alibaba.fastjson.JSON;
+import com.bevis.controller.ClientController;
 import com.bevis.model.*;
 import com.bevis.utils.Md5Util;
+import com.bevis.vo.LoginVO;
 import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import quickfix.*;
@@ -80,19 +83,40 @@ public class FixClientApplication extends MessageCracker implements Application 
     @Override
     public void toAdmin(Message message, SessionID sessionId) {
         if (isMessageOfType(message, MsgType.LOGON)) {
-            message.setField(new EncryptMethod(EncryptMethod.NONE_OTHER));
+            LoginVO vo = ClientController.loginVO;
+            if (vo == null) {
+                return;
+            }
+
+            if(vo.getEncryptMethod() == null){
+                vo.setEncryptMethod(EncryptMethod.NONE_OTHER);
+            }
+
+            message.setField(new EncryptMethod(vo.getEncryptMethod()));
+            if(vo.getHeartBtInt() != null){
+                message.setField(new HeartBtInt(vo.getHeartBtInt()));
+            }
+
             message.getHeader().setField(new SendingTime(LocalDateTime.now()));
             try {
-                String sign = geLogonSign((Logon) message);
-                message.setField(new RawData(sign));
-                message.setField(new RawDataLength(sign.length()));
+                if(StringUtils.isEmpty(vo.getRawData())) {
+                    String sign = geLogonSign((Logon) message);
+                    vo.setRawData(sign);
+                }
+                message.setField(new RawData(vo.getRawData()));
+
+                if(null == vo.getRawDataLength()){
+                    vo.setRawDataLength(vo.getRawData().length());
+                }
+
+                message.setField(new RawDataLength(vo.getRawDataLength()));
             } catch (Exception e) {
                 LOGGER.error(e.getMessage(), e);
             }
         }
 
         LOGGER.warn("发送会话消息时候调用此方法,sessionId={}, message={}", sessionId, message);
-
+        ClientController.loginVO = null;
     }
 
     /**
