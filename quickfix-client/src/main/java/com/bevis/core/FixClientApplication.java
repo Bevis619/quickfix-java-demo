@@ -85,7 +85,7 @@ public class FixClientApplication extends MessageCracker implements Application 
         if (isMessageOfType(message, MsgType.LOGON)) {
             LoginVO vo = ClientController.loginVO;
             if (vo == null) {
-                return;
+                vo = new LoginVO();
             }
 
             if(vo.getEncryptMethod() == null){
@@ -98,6 +98,19 @@ public class FixClientApplication extends MessageCracker implements Application 
             }
 
             message.getHeader().setField(new SendingTime(LocalDateTime.now()));
+
+            if (StringUtils.isNotEmpty(vo.getSenderCompID())) {
+                message.getHeader().setField(new SenderCompID(vo.getSenderCompID()));
+            }
+
+            if (StringUtils.isNotEmpty(vo.getTargetCompID())) {
+                message.getHeader().setField(new TargetCompID(vo.getTargetCompID()));
+            }
+
+            if (StringUtils.isNotEmpty(vo.getSecretkey())) {
+                this.secretKey = vo.getSecretkey();
+            }
+
             try {
                 if(StringUtils.isEmpty(vo.getRawData())) {
                     String sign = geLogonSign((Logon) message);

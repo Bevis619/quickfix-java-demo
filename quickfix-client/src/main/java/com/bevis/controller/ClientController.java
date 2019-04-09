@@ -4,10 +4,7 @@ import com.bevis.core.FixClient;
 import com.bevis.fields.MyPriceField;
 import com.bevis.fields.MyStringField;
 import com.bevis.messages.MyMessage;
-import com.bevis.vo.CancelOrderVO;
-import com.bevis.vo.LoginVO;
-import com.bevis.vo.NewOrderVO;
-import com.bevis.vo.QueryOrderVO;
+import com.bevis.vo.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -141,6 +138,37 @@ public class ClientController {
         ListStatusRequest request = new ListStatusRequest(new ListID(vo.getListID()));
         SessionID sessionID = fixClient.sessionIds().get(0);
         return Session.sendToTarget(request, sessionID);
+    }
+
+    /**
+     * 查询行情数据.
+     *
+     * @return the boolean
+     * @throws SessionNotFound the session not found
+     * @see <a href="http://localhost:9092/order/market/data">按住ctrl+鼠标左键发送请求</a>
+     */
+    @PostMapping("/market/data")
+    public Boolean getMarketData(@RequestBody MarketDataVO vo) throws SessionNotFound {
+        MarketDataRequest message = new MarketDataRequest();
+        message.set(new MDReqID(vo.getMdReqID()));
+        message.set(new SubscriptionRequestType(vo.getSubscriptionRequestType()));
+        message.set(new MarketDepth(vo.getMarketDepth()));
+
+        for (MarketDataVO.NoMdEntryType item : vo.getNoMdEntryTypes()) {
+            MarketDataRequest.NoMDEntryTypes noMDEntryTypes = new MarketDataRequest.NoMDEntryTypes();
+            noMDEntryTypes.set(new MDEntryType(item.getMdEntryType()));
+            message.addGroup(noMDEntryTypes);
+        }
+
+        for (MarketDataVO.NoRelatedSymbol item : vo.getNoRelatedSymbols()) {
+            MarketDataRequest.NoRelatedSym noRelatedSym = new MarketDataRequest.NoRelatedSym();
+            noRelatedSym.set(new Symbol(item.getSymbol()));
+            message.addGroup(noRelatedSym);
+        }
+
+        SessionID sessionID = fixClient.sessionIds().get(0);
+        boolean result = Session.sendToTarget(message, sessionID);
+        return result;
     }
 
     /**

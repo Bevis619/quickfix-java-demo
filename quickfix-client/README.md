@@ -64,4 +64,82 @@
 }
 ```
 
-7. 查询行情：TODO
+7. 查询行情
+- url：http://localhost:9092/order/market/data
+- method: post
+- body:
+
+```
+查询深度行情数据，对应之前api  depth接口
+{
+    "mdReqID": "123",
+    "subscriptionRequestType": "0",
+    "marketDepth": "10",
+    "noMdEntryTypes": [
+        {
+            "mdEntryType": "0"
+        },
+        {
+            "mdEntryType": "1"
+        }
+    ],
+    "noRelatedSymbols": [
+        {
+            "symbol": "BTC/USD"
+        }
+    ]
+}
+```
+
+```
+查询实时行情数据，对应之前api  tickers接口
+{
+    "mdReqID": "123",
+    "subscriptionRequestType": "0",
+    "marketDepth": "10",
+    "noMdEntryTypes": [
+        {
+            "mdEntryType": "2"
+        }
+    ],
+    "noRelatedSymbols": [
+        {
+            "symbol": "BTC/USD"
+        }
+    ]
+}
+```
+
+```
+查询分时行情数据-5分钟K线数据，对应之前api  kline接口
+{
+    "mdReqID": "123",
+    "subscriptionRequestType": "0",
+    "marketDepth": "5",
+    "noMdEntryTypes": [
+        {
+            "mdEntryType": "4"
+        },
+        {
+            "mdEntryType": "5"
+        },
+        {
+            "mdEntryType": "7"
+        },
+        {
+            "mdEntryType": "8"
+        },
+        {
+            "mdEntryType": "B"
+        }
+    ],
+    "noRelatedSymbols": [
+        {
+            "symbol": "BTC/USD"
+        }
+    ]
+}
+```
+
+
+8.TOD

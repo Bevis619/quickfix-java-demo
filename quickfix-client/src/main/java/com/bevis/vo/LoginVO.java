@@ -13,6 +13,21 @@ import java.io.Serializable;
 @Data
 public class LoginVO implements Serializable {
     /**
+     * The Sender comp id.
+     */
+    private String senderCompID;
+
+    /**
+     * The Target comp id.
+     */
+    private String targetCompID;
+
+    /**
+     * The Secretkey.
+     */
+    private String secretkey;
+
+    /**
      * The Encrypt method.
      */
     private Integer encryptMethod;
