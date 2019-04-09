@@ -167,13 +167,6 @@ Logon(A)
 
 | 字段名          | 字段Code | 类型 | 描述                          |
 | ------------ | ------ | ---- | --------------------------- |
-| BeginingString  | 8   | header   | FIX.4.4  |
-| BodyLength    | 9     | header   |               |
-| SendingTime  | 52     | header   | 请求发送时间(UTC时间)               |
-| MsgType      | 35     | header   | 消息类型                        |
-| MsgSeqNum    | 34     | header   | 消息序列号                       |
-| SenderCompID | 49     | header   | API用户accessKey              |
-| TargetCompID | 56     | header   | 固定参数，请使用上方[参数约定]中描述的值       |
 | EncryptMethod| 98     | body   | 0-明文   |
 | HeartBtInt   | 108    | body   | 30-固定值       |
 
