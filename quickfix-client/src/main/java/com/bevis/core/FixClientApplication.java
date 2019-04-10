@@ -129,7 +129,6 @@ public class FixClientApplication extends MessageCracker implements Application 
         }
 
         LOGGER.warn("发送会话消息时候调用此方法,sessionId={}, message={}", sessionId, message);
-        ClientController.loginVO = null;
     }
 
     /**
