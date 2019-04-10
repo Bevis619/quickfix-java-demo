@@ -44,7 +44,7 @@ public class MarketDataBO implements Serializable {
         this.mdReqID = message.getMDReqID().getValue();
         this.symbol = message.getSymbol().getValue();
         this.noMDEntryTypes = Lists.newArrayList();
-        List<Group> groups = message.getGroups(NoMDEntryTypes.FIELD);
+        List<Group> groups = message.getGroups(NoMDEntries.FIELD);
         NoMDEntryType item;
         for (int i = 0; i < groups.size(); i++) {
             item = new NoMDEntryType(groups.get(i));

@@ -2,6 +2,7 @@ package com.bevis.model;
 
 import lombok.Data;
 import quickfix.FieldNotFound;
+import quickfix.field.MDReqRejReason;
 import quickfix.field.Text;
 import quickfix.fix44.MarketDataRequestReject;
 
@@ -38,7 +39,10 @@ public class MarketDataRejectBO implements Serializable {
      */
     public MarketDataRejectBO(MarketDataRequestReject message) throws FieldNotFound {
         this.mdReqID = message.getMDReqID().getValue();
-        this.mdReqRejReason = message.getMDReqRejReason().getValue();
+        if (message.isSetField(MDReqRejReason.FIELD)) {
+            this.mdReqRejReason = message.getMDReqRejReason().getValue();
+        }
+
         if (message.isSetField(Text.FIELD)) {
             this.text = message.getText().getValue();
         }
