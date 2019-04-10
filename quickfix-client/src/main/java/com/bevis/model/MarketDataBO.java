@@ -68,7 +68,7 @@ public class MarketDataBO implements Serializable {
         /**
          * The Md entry size.
          */
-        private Integer mdEntrySize;
+        private Double mdEntrySize;
         /**
          * The Md entry position no.
          */
@@ -93,7 +93,7 @@ public class MarketDataBO implements Serializable {
             this.mdEntryPx = group.getDouble(MDEntryPx.FIELD);
             this.mdEntryPositionNo = group.getInt(MDEntryPositionNo.FIELD);
             if (group.isSetField(MDEntrySize.FIELD)) {
-                this.mdEntrySize = group.getInt(MDEntrySize.FIELD);
+                this.mdEntrySize = group.getDouble(MDEntrySize.FIELD);
             }
 
             if (group.isSetField(MDEntryDate.FIELD)) {
