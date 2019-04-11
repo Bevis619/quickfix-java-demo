@@ -88,12 +88,12 @@ public class FixClientApplication extends MessageCracker implements Application 
                 vo = new LoginVO();
             }
 
-            if(vo.getEncryptMethod() == null){
+            if (vo.getEncryptMethod() == null) {
                 vo.setEncryptMethod(EncryptMethod.NONE_OTHER);
             }
 
             message.setField(new EncryptMethod(vo.getEncryptMethod()));
-            if(vo.getHeartBtInt() != null){
+            if (vo.getHeartBtInt() != null) {
                 message.setField(new HeartBtInt(vo.getHeartBtInt()));
             }
 
@@ -112,13 +112,13 @@ public class FixClientApplication extends MessageCracker implements Application 
             }
 
             try {
-                if(StringUtils.isEmpty(vo.getRawData())) {
+                if (StringUtils.isEmpty(vo.getRawData())) {
                     String sign = geLogonSign((Logon) message);
                     vo.setRawData(sign);
                 }
                 message.setField(new RawData(vo.getRawData()));
 
-                if(null == vo.getRawDataLength()){
+                if (null == vo.getRawDataLength()) {
                     vo.setRawDataLength(vo.getRawData().length());
                 }
 
@@ -279,7 +279,7 @@ public class FixClientApplication extends MessageCracker implements Application 
     @Handler
     public void onExecutionReportMessage(ExecutionReport message, SessionID sessionID) throws FieldNotFound {
         ExecutionReportBO bo = new ExecutionReportBO(message);
-        LOGGER.warn("receive order execution report json={}, message={}", JSON.toJSONString(bo), message);
+        LOGGER.warn("receive order execution report json={}", JSON.toJSONString(bo));
         switch (bo.getOrdStatus()) {
             case OrdStatus.NEW:
                 LOGGER.warn("create new order:orderID={}，text={}", bo.getOrderID(), bo.getText());
@@ -302,7 +302,7 @@ public class FixClientApplication extends MessageCracker implements Application 
     @Handler
     public void onOrderCancelRejectMessage(OrderCancelReject message, SessionID sessionID) throws FieldNotFound {
         OrderCancelRejectBO bo = new OrderCancelRejectBO(message);
-        LOGGER.warn("receive order cancel reject json={}, message={}", JSON.toJSONString(bo), message);
+        LOGGER.warn("receive order cancel reject json={}", JSON.toJSONString(bo));
     }
 
     /**
@@ -314,7 +314,7 @@ public class FixClientApplication extends MessageCracker implements Application 
     @Handler
     public void onListStatusMessage(ListStatus message, SessionID sessionID) throws FieldNotFound {
         ListStatusBO bo = new ListStatusBO(message);
-        LOGGER.warn("receive order list status json={}, message={}", JSON.toJSONString(bo), message);
+        LOGGER.warn("receive order list status json={}", JSON.toJSONString(bo));
     }
 
     /**
@@ -327,7 +327,7 @@ public class FixClientApplication extends MessageCracker implements Application 
     @Handler
     public void onMarketDateRequestRejectMessage(MarketDataRequestReject message, SessionID sessionID) throws FieldNotFound {
         MarketDataRejectBO bo = new MarketDataRejectBO(message);
-        LOGGER.warn("receive market data reject json={}, message={}", JSON.toJSONString(bo), message);
+        LOGGER.warn("receive market data reject json={}", JSON.toJSONString(bo));
     }
 
     /**
@@ -340,6 +340,6 @@ public class FixClientApplication extends MessageCracker implements Application 
     @Handler
     public void onMarketDataSnapshotFullRefreshMessage(MarketDataSnapshotFullRefresh message, SessionID sessionID) throws FieldNotFound {
         MarketDataBO bo = new MarketDataBO(message);
-        LOGGER.warn("receive market data response json={},message={}", JSON.toJSONString(bo), message);
+        LOGGER.warn("receive market data response json={}", JSON.toJSONString(bo));
     }
 }

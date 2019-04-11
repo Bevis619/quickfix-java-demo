@@ -431,9 +431,9 @@ ExecutionReport(8)
 | ExecType | 150     | 执行类型，固定值=6（PENDING_CANCEL） |
 | ExecID | 17     | 执行ID，为服务端订单ID |
 | OrdStatus | 39     | 订单状态，固定值=4（CANCELED） |
-| LeavesQty | 151     | 未成交数量，固定值=0 |
-| CumQty | 14     | 已成交数量，固定值=0 |
-| AvgPx | 6     |成交均价，固定值=0  |
+| LeavesQty | 151     | 未成交数量，固定值=0.0 |
+| CumQty | 14     | 已成交数量，固定值=0.0 |
+| AvgPx | 6     |成交均价，固定值=0.0  |
 | Text | 58     |备注  |
 
 撤单失败响应MsgType：
