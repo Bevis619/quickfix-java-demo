@@ -3,6 +3,7 @@ package com.bevis.core;
 import com.alibaba.fastjson.JSON;
 import com.bevis.controller.ClientController;
 import com.bevis.model.*;
+import com.bevis.utils.JsonUtil;
 import com.bevis.utils.Md5Util;
 import com.bevis.vo.LoginVO;
 import com.google.common.collect.Maps;
@@ -290,6 +291,8 @@ public class FixClientApplication extends MessageCracker implements Application 
             default:
                 break;
         }
+
+        System.out.println("收到下单、撤单结果：" + JsonUtil.formatJson(JSON.toJSONString(bo)));
     }
 
     /**
@@ -303,6 +306,7 @@ public class FixClientApplication extends MessageCracker implements Application 
     public void onOrderCancelRejectMessage(OrderCancelReject message, SessionID sessionID) throws FieldNotFound {
         OrderCancelRejectBO bo = new OrderCancelRejectBO(message);
         LOGGER.warn("receive order cancel reject json={}", JSON.toJSONString(bo));
+        System.out.println("收到拒绝撤单结果：" + JsonUtil.formatJson(JSON.toJSONString(bo)));
     }
 
     /**
@@ -315,6 +319,7 @@ public class FixClientApplication extends MessageCracker implements Application 
     public void onListStatusMessage(ListStatus message, SessionID sessionID) throws FieldNotFound {
         ListStatusBO bo = new ListStatusBO(message);
         LOGGER.warn("receive order list status json={}", JSON.toJSONString(bo));
+        System.out.println("收到查询未完成订单消息：" + JsonUtil.formatJson(JSON.toJSONString(bo)));
     }
 
     /**
@@ -328,6 +333,7 @@ public class FixClientApplication extends MessageCracker implements Application 
     public void onMarketDateRequestRejectMessage(MarketDataRequestReject message, SessionID sessionID) throws FieldNotFound {
         MarketDataRejectBO bo = new MarketDataRejectBO(message);
         LOGGER.warn("receive market data reject json={}", JSON.toJSONString(bo));
+        System.out.println("收到行情拒绝数据：" + JsonUtil.formatJson(JSON.toJSONString(bo)));
     }
 
     /**
@@ -341,5 +347,6 @@ public class FixClientApplication extends MessageCracker implements Application 
     public void onMarketDataSnapshotFullRefreshMessage(MarketDataSnapshotFullRefresh message, SessionID sessionID) throws FieldNotFound {
         MarketDataBO bo = new MarketDataBO(message);
         LOGGER.warn("receive market data response json={}", JSON.toJSONString(bo));
+        System.out.println("收到行情数据：" + JsonUtil.formatJson(JSON.toJSONString(bo)));
     }
 }

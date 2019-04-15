@@ -5,10 +5,12 @@
    
 ```
 {
-	"encryptMethod":"0",
-	"heartBtInt":30,
-	"rawData":"7210a93581c887d1bf6c96d0dd06bde0",
-	"rawDataLength":32
+    "senderCompID": "",
+    "secretkey": "",
+    "encryptMethod": "0",
+    "heartBtInt": 30,
+    "rawData": "",
+    "rawDataLength": 0
 }
 ```
 
@@ -27,13 +29,13 @@
 
 ```
 {
-	"clOrdID":"1223",
-	"symbol":"BTC/USD",
-	"price":0,
-	"side":"1",
-	"ordType":"1",
-	"orderQty":0,
-	"cashOrderQty":11
+	"clOrdID":"12234",
+	"symbol":"BONDS111/STACS",
+	"price":12,
+	"side":"2",
+	"ordType":"2",
+	"orderQty":20,
+	"cashOrderQty":0
 }
 ```
 

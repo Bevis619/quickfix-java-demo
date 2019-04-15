@@ -1,0 +1,130 @@
+###  登陆
+POST http://localhost:9092/order/logon HTTP/1.1
+Content-Type: application/json
+
+{
+    "senderCompID": "",
+    "secretkey": "",
+    "encryptMethod": "0",
+    "heartBtInt": 30,
+    "rawData": "",
+    "rawDataLength": 0
+}
+
+### 注销
+GET http://localhost:9092/order/logout HTTP/1.1
+
+### 心跳
+GET http://localhost:9092/order/heartbeat HTTP/1.1
+
+### 创单
+POST http://localhost:9092/order/new HTTP/1.1
+Content-Type: application/json
+
+{
+	"clOrdID":"12234",
+	"symbol":"BONDS111/STACS",
+	"price":9,
+	"side":"1",
+	"ordType":"2",
+	"orderQty":2,
+	"cashOrderQty":0
+}
+
+### 撤单
+POST http://localhost:9092/order/cancel HTTP/1.1
+Content-Type: application/json
+
+{
+	"orderID":"1630603219040337921",
+	"clOrdID":"123",
+	"origClOrdID":"1234",
+	"symbol":"BONDS111/STACS",
+	"side":"1"
+}
+
+### 查询未完成的订单
+POST http://localhost:9092/order/queryOrder HTTP/1.1
+Content-Type: application/json
+
+{
+	"listID":"*"
+}
+
+### 深度行情数据
+POST http://localhost:9092/order/market/data HTTP/1.1
+Content-Type: application/json
+
+{
+    "mdReqID": "123",
+    "subscriptionRequestType": "0",
+    "marketDepth": "5",
+    "noMdEntryTypes": [
+        {
+            "mdEntryType": "0"
+        },
+        {
+            "mdEntryType": "1"
+        }
+    ],
+    "noRelatedSymbols": [
+        {
+            "symbol": "BONDS111/STACS"
+        }
+    ]
+}
+
+
+### 实时行情数据
+POST http://localhost:9092/order/market/data HTTP/1.1
+Content-Type: application/json
+
+{
+    "mdReqID": "123",
+    "subscriptionRequestType": "0",
+    "marketDepth": "1",
+    "noMdEntryTypes": [
+        {
+            "mdEntryType": "2"
+        }
+    ],
+    "noRelatedSymbols": [
+        {
+            "symbol": "BONDS111/STACS"
+        }
+    ]
+}
+
+### K线行情数据
+POST http://localhost:9092/order/market/data HTTP/1.1
+Content-Type: application/json
+
+{
+    "mdReqID": "123",
+    "subscriptionRequestType": "0",
+    "marketDepth": "1",
+    "noMdEntryTypes": [
+        {
+            "mdEntryType": "4"
+        },
+        {
+            "mdEntryType": "5"
+        },
+        {
+            "mdEntryType": "7"
+        },
+        {
+            "mdEntryType": "8"
+        },
+        {
+            "mdEntryType": "B"
+        }
+    ],
+    "noRelatedSymbols": [
+        {
+            "symbol": "BONDS111/STACS"
+        }
+    ]
+}
+
+###
