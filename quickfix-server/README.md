@@ -602,9 +602,9 @@ MarketDataRequest(V)
 | ------- | ------ | ---- | -------------------------- |
 | MDReqID | 262    | 必填   | 请求ID |
 | SubscriptionRequestType | 263    | 必填   | 订阅类型：有效值0（snapshot） |
-| MarketDepth | 264    | 必填   | 获取记录数，有效值： 0-N（最大值根据各个行情数据配置而定）。如果是查询k线数据，该值表示分钟数，有效值：1、5、15、30、60(1h)、120(2h)、240(4h)、360(6h)、720(12h)、1440(1d)、10080(1周) |
+| MarketDepth | 264    | 必填   | 获取记录数，有效值： 0-N（最大值根据各个行情数据配置而定）。如果是查询k线数据，该值表示分钟数，有效值：1、5、15、30、60(1h)、120(2h)、240(4h)、360(6h)、720(12h)、1440(1d)、10080(1周);如果查询最后成交时间，该值只能为1 |
 | NoMDEntryTypes | 267    | 必填   | 行情数据类型集合 |
-| -- MDEntryType | 269    | 必填   | 有效值：</br>1、深度行情[ 0-BID、1-OFFER] ;</br>2、实时行情[2-TRADE];</br> 3、k线数据[4-OPENING_PRICE、 5-CLOSING_PRICE</br>、7-TRADING_SESSION_HIGH_PRICE</br>、8-TRADING_SESSION_LOW_PRICE、B-TRADE_VOLUME] |
+| -- MDEntryType | 269    | 必填   | 有效值：</br>1、深度行情[ 0-BID、1-OFFER] ;</br>2、实时行情[2-TRADE];</br> 3、k线数据[4-OPENING_PRICE、 5-CLOSING_PRICE</br>、7-TRADING_SESSION_HIGH_PRICE</br>、8-TRADING_SESSION_LOW_PRICE、B-TRADE_VOLUME] </br>4、价格行情[ 0-BID、1-OFFER、6-SETTLEMENT_PRICE] ; </br>5、最后成交时间[ 0-BID、1-OFFER、2-TRADE] ;|
 | NoRelatedSym | 146    | 必填   | 交易对信息集合，只能设置为1，即只能查询一个交易对的行情数据 |
 | -- Symbol | 55    | 必填   | 交易对，例如：BTC/USDT |
 
@@ -666,6 +666,7 @@ MarketDataRequestReject(Y)
 | ------------------ | -------- |
 | only supported subscription request type values:0=Snapshot | 订阅类型只支持0 |
 | only one symbol is allowed | 只允许查询一个交易对的行情数据 |
+| the parameter 'MarketDepth' can only be 1 | 当查询交易对最后一个成交时间时，MarketDepth只能为1 |
 | the market data entry types is error | 行情类型错误 |
 | no market data | 没有查询到行情数据 |
 | symbol is invalid | 无效的交易对 |
