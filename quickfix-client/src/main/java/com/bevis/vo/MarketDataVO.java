@@ -10,8 +10,10 @@ import java.io.Serializable;
 import java.util.List;
 
 /**
+ * The type Market data vo.
+ *
  * @author yanghuadong
- * @date 2019-04-09
+ * @date 2019 -04-09
  */
 @Data
 public class MarketDataVO implements Serializable {
@@ -49,6 +51,13 @@ public class MarketDataVO implements Serializable {
      * 其它详细信息.
      */
     private List<NoRelatedSymbol> noRelatedSymbols;
+
+    /**
+     *  Maximum application queue depth that must be exceeded before queuing action is taken.
+     *  如果查询的是K线数据，该值必填，代表是查询几分钟的K线行情，
+     *  有效值：1、5、15、30、60(1h)、120(2h)、240(4h)、360(6h)、720(12h)、1440(1d)、10080(1周);
+     */
+    private Integer applQueueMax;
 
     /**
      * Gets symbol.

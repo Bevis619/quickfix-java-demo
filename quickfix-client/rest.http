@@ -102,7 +102,7 @@ Content-Type: application/json
 {
     "mdReqID": "345",
     "subscriptionRequestType": "0",
-    "marketDepth": "1",
+    "marketDepth": 1,
     "noMdEntryTypes": [
         {
             "mdEntryType": "4"
@@ -124,7 +124,8 @@ Content-Type: application/json
         {
             "symbol": "BONDS111/STACS"
         }
-    ]
+    ],
+    "applQueueMax": 5
 }
 
 ### 价格行情数据

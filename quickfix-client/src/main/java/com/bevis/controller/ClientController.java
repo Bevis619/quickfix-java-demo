@@ -166,6 +166,10 @@ public class ClientController {
             message.addGroup(noRelatedSym);
         }
 
+        if (vo.getApplQueueMax() != null) {
+            message.set(new ApplQueueMax(vo.getApplQueueMax()));
+        }
+
         SessionID sessionID = fixClient.sessionIds().get(0);
         boolean result = Session.sendToTarget(message, sessionID);
         return result;
