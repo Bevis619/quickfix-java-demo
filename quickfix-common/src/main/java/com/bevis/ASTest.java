@@ -25,5 +25,8 @@ public class ASTest {
         System.out.println("secretKey=" + secretKey);
         System.out.println("encpAccessKey=" + encpAccessKey);
         System.out.println("encpSecretKey=" + encpSecretKey);
+
+        System.out.println("accessKey=" + UserKeyAESUtil.decrypt("uDqw9NgOluEx2zs1w0teyXQW9vnMVAkg3wBIQn75+fAoHUvtowpncvghsOdsOBj+"));
+        System.out.println("secretKey=" + UserKeyAESUtil.decrypt("NofdyV9GIZQNQP1R42NPIvpxCIUUGaLRD0eXvmFzsxgaqZDSVLjXSbNRDl8zRxzk"));
     }
 }

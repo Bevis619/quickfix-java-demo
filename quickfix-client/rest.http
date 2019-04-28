@@ -135,7 +135,7 @@ Content-Type: application/json
 {
     "mdReqID": "456",
     "subscriptionRequestType": "0",
-    "marketDepth": "5",
+    "marketDepth": "2",
     "noMdEntryTypes": [
         {
             "mdEntryType": "0"
@@ -175,7 +175,7 @@ Content-Type: application/json
     ],
     "noRelatedSymbols": [
         {
-            "symbol": "BONDS111/STACS"
+            "symbol": "BTC/USD"
         }
     ]
 }
